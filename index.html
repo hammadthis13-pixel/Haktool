@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tool Portal | User Access</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #080a0f;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        .mesh-bg {
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(6,182,212,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(16,185,129,0.05) 0%, transparent 50%),
+                #080a0f;
+        }
+        .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .login-box {
+            width: 100%; max-width: 420px;
+            background: rgba(15,23,42,0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+        .logo {
+            text-align: center; margin-bottom: 30px;
+        }
+        .logo-icon {
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, #06b6d4, #10b981);
+            border-radius: 16px;
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 30px -10px rgba(6,182,212,0.4);
+        }
+        .logo h1 {
+            font-size: 28px;
+            background: linear-gradient(90deg, #06b6d4, #10b981);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+        .logo p { color: #64748b; font-size: 14px; margin-top: 4px; }
+
+        .toggle-btns {
+            display: flex; gap: 4px;
+            background: rgba(255,255,255,0.05);
+            padding: 4px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+        .toggle-btn {
+            flex: 1; padding: 10px;
+            border: none; border-radius: 10px;
+            cursor: pointer; font-size: 14px; font-weight: 600;
+            transition: all 0.3s ease;
+            background: transparent; color: #64748b;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .toggle-btn.active {
+            background: linear-gradient(135deg, #06b6d4, #10b981);
+            color: white;
+            box-shadow: 0 4px 15px rgba(6,182,212,0.3);
+        }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block; font-size: 12px; font-weight: 600;
+            color: #64748b; margin-bottom: 6px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .input-wrap { position: relative; }
+        .input-wrap i {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            color: #475569; font-size: 14px;
+        }
+        .form-input {
+            width: 100%; padding: 12px 14px 12px 40px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            color: #e2e8f0; font-size: 15px;
+            transition: all 0.3s ease;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: rgba(6,182,212,0.5);
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.1), 0 0 20px rgba(6,182,212,0.05);
+        }
+
+        .submit-btn {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #06b6d4, #10b981);
+            border: none; border-radius: 10px;
+            color: white; font-size: 16px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s ease;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 10px 30px -10px rgba(6,182,212,0.4);
+        }
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px -10px rgba(6,182,212,0.5);
+        }
+        .submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .hint {
+            margin-top: 20px;
+            padding: 12px;
+            background: rgba(6,182,212,0.05);
+            border: 1px solid rgba(6,182,212,0.1);
+            border-radius: 10px;
+            font-size: 12px; color: #64748b;
+        }
+        .hint span { color: #06b6d4; font-weight: 600; }
+
+        /* Portal */
+        .portal { display: none; }
+        .header {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(8,10,15,0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .header-inner {
+            max-width: 1200px; margin: 0 auto;
+            padding: 16px 24px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .header-brand { display: flex; align-items: center; gap: 12px; }
+        .header-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, #06b6d4, #10b981);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .header-brand h2 {
+            font-size: 18px; font-weight: 700;
+            background: linear-gradient(90deg, #06b6d4, #10b981);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .header-brand p { font-size: 12px; color: #475569; }
+        .header-brand p span { color: #06b6d4; }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #64748b; border-radius: 8px;
+            cursor: pointer; font-size: 13px;
+            transition: all 0.3s ease;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .logout-btn:hover { color: #ef4444; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05); }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+
+        .welcome-card {
+            background: rgba(15,23,42,0.6);
+            border: 1px solid rgba(6,182,212,0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+            display: flex; align-items: flex-start; gap: 16px;
+            position: relative; overflow: hidden;
+        }
+        .welcome-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(90deg, rgba(6,182,212,0.03), rgba(16,185,129,0.03));
+        }
+        .welcome-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, #06b6d4, #10b981);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; flex-shrink: 0;
+        }
+        .welcome-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 4px; position: relative; }
+        .welcome-card p { font-size: 14px; color: #475569; line-height: 1.6; position: relative; }
+
+        .search-bar {
+            display: flex; gap: 12px; margin-bottom: 24px;
+        }
+        .search-input {
+            flex: 1; padding: 14px 18px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            color: #e2e8f0; font-size: 15px;
+            transition: all 0.3s ease;
+        }
+        .search-input:focus { outline: none; border-color: rgba(6,182,212,0.5); }
+        .search-input::placeholder { color: #475569; }
+
+        .category-pills {
+            display: flex; gap: 8px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .category-pills::-webkit-scrollbar { display: none; }
+        .pill {
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03);
+            color: #475569;
+        }
+        .pill:hover { color: #e2e8f0; background: rgba(255,255,255,0.06); }
+        .pill.active {
+            background: linear-gradient(135deg, #06b6d4, #10b981);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(6,182,212,0.3);
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        .tool-card {
+            background: rgba(15,23,42,0.6);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .tool-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(6,182,212,0.2);
+            box-shadow: 0 20px 40px -15px rgba(6,182,212,0.15);
+        }
+        .tool-card::before {
+            content: ''; display: block; height: 3px;
+            background: linear-gradient(90deg, #06b6d4, #10b981);
+        }
+        .tool-card-inner { padding: 24px; }
+        .tool-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .tool-icon-box {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, rgba(6,182,212,0.1), rgba(16,185,129,0.1));
+            border: 1px solid rgba(6,182,212,0.2);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: #06b6d4; font-size: 20px;
+        }
+        .tool-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px; font-weight: 600;
+            border: 1px solid;
+        }
+        .tool-name { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+        .tool-card:hover .tool-name { color: #06b6d4; }
+        .tool-desc { font-size: 14px; color: #475569; line-height: 1.6; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .tool-btn {
+            width: 100%; padding: 12px;
+            background: rgba(6,182,212,0.08);
+            border: 1px solid rgba(6,182,212,0.15);
+            border-radius: 10px;
+            color: #06b6d4; font-size: 14px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s ease;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .tool-btn:hover { background: rgba(6,182,212,0.15); border-color: rgba(6,182,212,0.3); }
+
+        .empty-state { text-align: center; padding: 80px 20px; color: #475569; }
+        .empty-state i { font-size: 64px; margin-bottom: 20px; display: block; opacity: 0.3; }
+        .spinner { width: 40px; height: 40px; border: 3px solid rgba(6,182,212,0.1); border-top-color: #06b6d4; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 640px) {
+            .login-box { padding: 28px 20px; }
+            .tools-grid { grid-template-columns: 1fr; }
+            .welcome-card { flex-direction: column; }
+        }
+    </style>
+</head>
+<body class="mesh-bg">
+    <!-- LOGIN PAGE -->
+    <div id="loginPage" class="login-container">
+        <div class="login-box">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-terminal"></i></div>
+                <h1>Tool Portal</h1>
+                <p id="loginSubtitle">User Login</p>
+            </div>
+
+            <div class="toggle-btns">
+                <button class="toggle-btn active" onclick="setMode('user')">
+                    <i class="fas fa-user"></i> User
+                </button>
+                <button class="toggle-btn" onclick="setMode('admin')">
+                    <i class="fas fa-shield-alt"></i> Admin
+                </button>
+            </div>
+
+            <form id="loginForm" onsubmit="return handleLogin(event)">
+                <div class="form-group">
+                    <label>Username</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="username" class="form-input" placeholder="Enter username" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" class="form-input" placeholder="Enter password" required>
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> <span id="btnText">Login</span>
+                </button>
+            </form>
+
+            <div class="hint" id="hintBox">
+                <i class="fas fa-info-circle" style="color:#06b6d4"></i>
+                Demo: <span>demo</span> / <span>demo123</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- USER PORTAL -->
+    <div id="userPortal" class="portal">
+        <div class="header">
+            <div class="header-inner">
+                <div class="header-brand">
+                    <div class="header-icon"><i class="fas fa-bolt" style="color:white"></i></div>
+                    <div>
+                        <h2>Tool Portal</h2>
+                        <p>Welcome, <span id="welcomeUser">User</span></p>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="logoutUser()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="welcome-card">
+                <div class="welcome-icon"><i class="fas fa-rocket" style="color:white"></i></div>
+                <div>
+                    <h3>Welcome to Your Tool Portal</h3>
+                    <p>Access all your tools in one place. Click on any tool card to open it in a new tab. All tools are securely managed and regularly updated.</p>
+                </div>
+            </div>
+
+            <div class="search-bar">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search tools by name or description..." oninput="filterTools()">
+            </div>
+
+            <div class="category-pills" id="categoryPills"></div>
+
+            <div id="toolsContainer">
+                <div class="empty-state"><div class="spinner"></div><p>Loading tools...</p></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+// ============================================================
+// LOCALSTORAGE DATABASE (No Firebase - Works Forever!)
+// ============================================================
+const DB = {
+    TOOLS_KEY: 'tms_tools',
+    USERS_KEY: 'tms_users',
+    SESSION_KEY: 'tms_session',
+
+    getTools() {
+        let tools = localStorage.getItem(this.TOOLS_KEY);
+        if (!tools) {
+            const defaultTools = [
+                { id: crypto.randomUUID(), name: 'Video Converter', link: 'https://convertio.co/video-converter/', description: 'Convert videos between 300+ formats online with high quality output.', category: 'Video', createdAt: Date.now() },
+                { id: crypto.randomUUID(), name: 'PDF Compressor', link: 'https://smallpdf.com/compress-pdf', description: 'Compress PDF files without losing quality. Reduce file size up to 90%.', category: 'PDF', createdAt: Date.now() },
+                { id: crypto.randomUUID(), name: 'Image Editor Pro', link: 'https://pixlr.com/', description: 'Advanced online photo editor with AI-powered features and professional tools.', category: 'Image', createdAt: Date.now() },
+                { id: crypto.randomUUID(), name: 'Code Beautifier', link: 'https://codebeautify.org/', description: 'Format and beautify code in multiple languages with syntax highlighting.', category: 'Developer', createdAt: Date.now() },
+                { id: crypto.randomUUID(), name: 'Audio Converter', link: 'https://online-audio-converter.com/', description: 'Convert audio files to MP3, WAV, FLAC and more with lossless quality.', category: 'Audio', createdAt: Date.now() },
+                { id: crypto.randomUUID(), name: 'File Compressor', link: 'https://www.11zip.com/', description: 'Compress and decompress ZIP, RAR, 7Z files online without installing software.', category: 'Utility', createdAt: Date.now() },
+            ];
+            localStorage.setItem(this.TOOLS_KEY, JSON.stringify(defaultTools));
+            return defaultTools;
+        }
+        return JSON.parse(tools);
+    },
+
+    getUsers() {
+        let users = localStorage.getItem(this.USERS_KEY);
+        if (!users) {
+            const defaultUsers = [
+                { id: crypto.randomUUID(), username: 'demo', password: 'demo123', createdAt: Date.now() },
+                { id: crypto.randomUUID(), username: 'user1', password: 'user123', createdAt: Date.now() },
+            ];
+            localStorage.setItem(this.USERS_KEY, JSON.stringify(defaultUsers));
+            return defaultUsers;
+        }
+        return JSON.parse(users);
+    },
+
+    findUser(username, password) {
+        return this.getUsers().find(u => u.username === username && u.password === password);
+    },
+
+    getSession() {
+        const s = localStorage.getItem(this.SESSION_KEY);
+        return s ? JSON.parse(s) : null;
+    },
+
+    setSession(user) {
+        localStorage.setItem(this.SESSION_KEY, JSON.stringify(user));
+    },
+
+    clearSession() {
+        localStorage.removeItem(this.SESSION_KEY);
+    }
+};
+
+// ============================================================
+// LOGIN SYSTEM
+// ============================================================
+let loginMode = 'user';
+const ADMIN_USER = 'admin';
+const ADMIN_PASS = 'admin123';
+
+function setMode(mode) {
+    loginMode = mode;
+    document.querySelectorAll('.toggle-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', (mode === 'user' && i === 0) || (mode === 'admin' && i === 1));
+    });
+    document.getElementById('loginSubtitle').textContent = mode === 'admin' ? 'Admin Login' : 'User Login';
+    document.getElementById('btnText').textContent = mode === 'admin' ? 'Admin Login' : 'Login';
+    document.getElementById('hintBox').innerHTML = mode === 'admin'
+        ? '<i class="fas fa-shield-alt" style="color:#06b6d4"></i> Admin: <span>admin</span> / <span>admin123</span>'
+        : '<i class="fas fa-info-circle" style="color:#06b6d4"></i> Demo: <span>demo</span> / <span>demo123</span>';
+}
+
+function handleLogin(e) {
+    e.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = true;
+
+    setTimeout(() => {
+        if (loginMode === 'admin') {
+            if (username === ADMIN_USER && password === ADMIN_PASS) {
+                DB.setSession({ username: 'admin', isAdmin: true });
+                window.location.href = 'admin.html';
+            } else {
+                alert('Invalid admin credentials!');
+                btn.disabled = false;
+            }
+        } else {
+            const user = DB.findUser(username, password);
+            if (user) {
+                DB.setSession({ username: user.username, isAdmin: false });
+                showPortal(user.username);
+            } else {
+                alert('Invalid username or password!');
+                btn.disabled = false;
+            }
+        }
+    }, 400);
+    return false;
+}
+
+// ============================================================
+// USER PORTAL
+// ============================================================
+let allTools = [];
+let currentCategory = 'All';
+
+function showPortal(username) {
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('userPortal').style.display = 'block';
+    document.getElementById('welcomeUser').textContent = username;
+    loadTools();
+}
+
+function logoutUser() {
+    DB.clearSession();
+    document.getElementById('userPortal').style.display = 'none';
+    document.getElementById('loginPage').style.display = 'flex';
+    document.getElementById('loginForm').reset();
+    document.getElementById('loginBtn').disabled = false;
+}
+
+function getIconClass(name) {
+    const n = name.toLowerCase();
+    if (n.includes('video')) return 'fa-video';
+    if (n.includes('image')) return 'fa-image';
+    if (n.includes('pdf')) return 'fa-file-pdf';
+    if (n.includes('audio') || n.includes('music')) return 'fa-music';
+    if (n.includes('code')) return 'fa-code';
+    if (n.includes('compress') || n.includes('zip')) return 'fa-file-archive';
+    return 'fa-tools';
+}
+
+function getBadgeColor(cat) {
+    const colors = {
+        Video: 'rgba(168,85,247,0.1); color:#a855f7; border-color:rgba(168,85,247,0.2)',
+        Image: 'rgba(236,72,153,0.1); color:#ec4899; border-color:rgba(236,72,153,0.2)',
+        PDF: 'rgba(239,68,68,0.1); color:#ef4444; border-color:rgba(239,68,68,0.2)',
+        Audio: 'rgba(245,158,11,0.1); color:#f59e0b; border-color:rgba(245,158,11,0.2)',
+        Developer: 'rgba(6,182,212,0.1); color:#06b6d4; border-color:rgba(6,182,212,0.2)',
+        Utility: 'rgba(16,185,129,0.1); color:#10b981; border-color:rgba(16,185,129,0.2)',
+    };
+    return colors[cat] || 'rgba(100,116,139,0.1); color:#64748b; border-color:rgba(100,116,139,0.2)';
+}
+
+function loadTools() {
+    allTools = DB.getTools();
+    renderCategories();
+    renderTools(allTools);
+}
+
+function renderCategories() {
+    const cats = ['All', ...new Set(allTools.map(t => t.category))];
+    const html = cats.map(cat =>
+        `<button class="pill ${cat === currentCategory ? 'active' : ''}" onclick="setCategory('${cat}')">${cat}</button>`
+    ).join('');
+    document.getElementById('categoryPills').innerHTML = html;
+}
+
+function setCategory(cat) {
+    currentCategory = cat;
+    renderCategories();
+    filterTools();
+}
+
+function filterTools() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    let filtered = allTools;
+    if (currentCategory !== 'All') filtered = filtered.filter(t => t.category === currentCategory);
+    if (search) filtered = filtered.filter(t => t.name.toLowerCase().includes(search) || t.description.toLowerCase().includes(search));
+    renderTools(filtered);
+}
+
+function renderTools(tools) {
+    const container = document.getElementById('toolsContainer');
+    if (tools.length === 0) {
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><h3>No Tools Found</h3><p>Try adjusting your search</p></div>';
+        return;
+    }
+    container.innerHTML = '<div class="tools-grid">' + tools.map(tool => `
+        <div class="tool-card" onclick="window.open('${tool.link}', '_blank')">
+            <div class="tool-card-inner">
+                <div class="tool-header">
+                    <div class="tool-icon-box"><i class="fas ${getIconClass(tool.name)}"></i></div>
+                    <span class="tool-badge" style="background:${getBadgeColor(tool.category).split(';')[0]}; ${getBadgeColor(tool.category)}">${tool.category}</span>
+                </div>
+                <div class="tool-name">${tool.name}</div>
+                <div class="tool-desc">${tool.description}</div>
+                <button class="tool-btn" onclick="event.stopPropagation(); window.open('${tool.link}', '_blank')">
+                    <i class="fas fa-external-link-alt"></i> Open Tool
+                </button>
+            </div>
+        </div>
+    `).join('') + '</div>';
+}
+
+// Auto-login if session exists
+document.addEventListener('DOMContentLoaded', () => {
+    const session = DB.getSession();
+    if (session) {
+        if (session.isAdmin) {
+            window.location.href = 'admin.html';
+        } else {
+            showPortal(session.username);
+        }
+    }
+});
+</script>
+</body>
+</html>
