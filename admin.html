@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | Tool Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #080a0f;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        .mesh-bg {
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(6,182,212,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(16,185,129,0.05) 0%, transparent 50%),
+                #080a0f;
+        }
+
+        /* Login */
+        .login-overlay {
+            position: fixed; inset: 0; z-index: 1000;
+            background: rgba(8,10,15,0.95);
+            backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .login-box {
+            width: 100%; max-width: 400px;
+            background: rgba(15,23,42,0.9);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 40px;
+        }
+        .login-box h2 {
+            text-align: center; margin-bottom: 24px;
+            background: linear-gradient(90deg, #06b6d4, #10b981);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px; text-transform: uppercase; }
+        .form-input {
+            width: 100%; padding: 12px 14px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px; color: #e2e8f0; font-size: 15px;
+        }
+        .form-input:focus { outline: none; border-color: rgba(6,182,212,0.5); }
+        .submit-btn {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #06b6d4, #10b981);
+            border: none; border-radius: 10px;
+            color: white; font-size: 16px; font-weight: 700; cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(6,182,212,0.4); }
+
+        /* Header */
+        .header {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(8,10,15,0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .header-inner {
+            max-width: 1200px; margin: 0 auto;
+            padding: 16px 24px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .header-brand { display: flex; align-items: center; gap: 12px; }
+        .header-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, #06b6d4, #10b981);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .header-brand h2 {
+            font-size: 18px; font-weight: 700;
+            background: linear-gradient(90deg, #06b6d4, #10b981);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .logout-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #475569; border-radius: 8px; cursor: pointer; font-size: 13px;
+            transition: all 0.3s ease; display: flex; align-items: center; gap: 6px;
+        }
+        .logout-btn:hover { color: #ef4444; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05); }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .main-layout { display: grid; grid-template-columns: 240px 1fr; gap: 24px; }
+
+        /* Sidebar */
+        .sidebar {
+            background: rgba(15,23,42,0.6);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 12px;
+            height: fit-content; position: sticky; top: 80px;
+        }
+        .menu-item {
+            width: 100%; display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px; border-radius: 12px; border: 1px solid transparent;
+            cursor: pointer; transition: all 0.3s ease;
+            background: transparent; color: #475569; font-size: 14px; font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .menu-item:hover { color: #e2e8f0; background: rgba(255,255,255,0.03); }
+        .menu-item.active {
+            background: linear-gradient(90deg, rgba(6,182,212,0.1), rgba(16,185,129,0.1));
+            color: #06b6d4; border-color: rgba(6,182,212,0.15);
+        }
+        .menu-item i { width: 20px; text-align: center; }
+
+        /* Content */
+        .content { min-width: 0; }
+        .section-title {
+            font-size: 24px; font-weight: 700; margin-bottom: 24px;
+            background: linear-gradient(90deg, #06b6d4, #10b981);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hidden { display: none !important; }
+
+        /* Cards */
+        .card {
+            background: rgba(15,23,42,0.6);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; overflow: hidden;
+        }
+        .card-body { padding: 24px; }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card {
+            background: rgba(15,23,42,0.6);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 24px;
+            display: flex; align-items: center; gap: 16px;
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover { transform: translateY(-4px); border-color: rgba(6,182,212,0.1); }
+        .stat-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+        }
+        .stat-value { font-size: 28px; font-weight: 800; }
+        .stat-label { font-size: 13px; color: #475569; }
+
+        /* Forms */
+        .form-row { margin-bottom: 16px; }
+        .form-row label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px; text-transform: uppercase; }
+        .form-row input, .form-row textarea, .form-row select {
+            width: 100%; padding: 12px 14px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px; color: #e2e8f0; font-size: 15px; font-family: inherit;
+        }
+        .form-row input:focus, .form-row textarea:focus, .form-row select:focus { outline: none; border-color: rgba(6,182,212,0.5); }
+        .form-row textarea { min-height: 100px; resize: vertical; }
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 10px;
+            font-size: 14px; font-weight: 700; cursor: pointer;
+            transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-primary { background: linear-gradient(135deg, #06b6d4, #10b981); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(6,182,212,0.3); }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: #475569; border: 1px solid rgba(255,255,255,0.08); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); color: #e2e8f0; }
+        .btn-danger { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); }
+        .btn-danger:hover { background: rgba(239,68,68,0.2); }
+        .btn-sm { padding: 8px 14px; font-size: 12px; }
+
+        /* Tables */
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th {
+            text-align: left; padding: 14px 16px;
+            font-size: 12px; font-weight: 600; color: #475569; text-transform: uppercase;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .data-table td { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 14px; }
+        .data-table tr:hover { background: rgba(255,255,255,0.02); }
+        .badge {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-size: 11px; font-weight: 600; border: 1px solid;
+        }
+        .badge-green { background: rgba(16,185,129,0.1); color: #10b981; border-color: rgba(16,185,129,0.2); }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 2000;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            display: none; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            width: 100%; max-width: 500px;
+            background: #0f172a;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px; padding: 32px;
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-header h3 { font-size: 20px; }
+        .modal-close { background: none; border: none; color: #475569; font-size: 24px; cursor: pointer; }
+        .modal-close:hover { color: #ef4444; }
+        .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+        .search-box {
+            padding: 10px 14px; background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
+            color: #e2e8f0; font-size: 14px; margin-bottom: 16px;
+        }
+        .search-box:focus { outline: none; border-color: rgba(6,182,212,0.5); }
+
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 3000; display: flex; flex-direction: column; gap: 10px; }
+        .toast {
+            padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 600;
+            animation: toastIn 0.3s ease; min-width: 250px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        .toast-success { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.2); }
+        .toast-error { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); }
+
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .mb-4 { margin-bottom: 16px; }
+
+        @media (max-width: 768px) {
+            .main-layout { grid-template-columns: 1fr; }
+            .sidebar { position: static; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .header-inner { flex-direction: column; gap: 12px; }
+        }
+    </style>
+</head>
+<body class="mesh-bg">
+    <!-- Login Overlay -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-box">
+            <h2><i class="fas fa-shield-alt"></i> Admin Login</h2>
+            <form onsubmit="return doLogin(event)">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="adminUser" class="form-input" placeholder="admin" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="adminPass" class="form-input" placeholder="admin123" required>
+                </div>
+                <button type="submit" class="submit-btn"><i class="fas fa-sign-in-alt"></i> Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="hidden">
+        <div class="header">
+            <div class="header-inner">
+                <div class="header-brand">
+                    <div class="header-icon"><i class="fas fa-shield-alt" style="color:white"></i></div>
+                    <h2>Admin Panel</h2>
+                </div>
+                <button class="logout-btn" onclick="adminLogout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="main-layout">
+                <!-- Sidebar -->
+                <nav class="sidebar">
+                    <button class="menu-item active" onclick="showSection('dashboard')">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </button>
+                    <button class="menu-item" onclick="showSection('tools')">
+                        <i class="fas fa-tools"></i> Manage Tools
+                    </button>
+                    <button class="menu-item" onclick="showSection('users')">
+                        <i class="fas fa-users"></i> Manage Users
+                    </button>
+                    <button class="menu-item" onclick="showSection('addTool')">
+                        <i class="fas fa-plus-circle"></i> Add Tool
+                    </button>
+                    <button class="menu-item" onclick="showSection('addUser')">
+                        <i class="fas fa-user-plus"></i> Add User
+                    </button>
+                </nav>
+
+                <!-- Content -->
+                <div class="content">
+                    <!-- DASHBOARD -->
+                    <div id="sec-dashboard">
+                        <h2 class="section-title"><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon" style="background:rgba(6,182,212,0.1);color:#06b6d4"><i class="fas fa-tools"></i></div>
+                                <div><div class="stat-value" style="color:#06b6d4" id="statTools">0</div><div class="stat-label">Total Tools</div></div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon" style="background:rgba(16,185,129,0.1);color:#10b981"><i class="fas fa-users"></i></div>
+                                <div><div class="stat-value" style="color:#10b981" id="statUsers">0</div><div class="stat-label">Total Users</div></div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon" style="background:rgba(168,85,247,0.1);color:#a855f7"><i class="fas fa-user-check"></i></div>
+                                <div><div class="stat-value" style="color:#a855f7" id="statActive">0</div><div class="stat-label">Active Users</div></div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <h3 style="margin-bottom:16px;font-size:16px"><i class="fas fa-clock" style="color:#06b6d4"></i> Recent Tools</h3>
+                                <div id="recentTools"><p style="color:#475569;text-align:center;padding:20px">No tools yet</p></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MANAGE TOOLS -->
+                    <div id="sec-tools" class="hidden">
+                        <div class="flex-between mb-4">
+                            <h2 class="section-title"><i class="fas fa-tools"></i> Manage Tools</h2>
+                            <input type="text" class="search-box" placeholder="Search tools..." oninput="renderToolsTable()" id="toolSearch">
+                        </div>
+                        <div class="card">
+                            <div style="overflow-x:auto">
+                                <table class="data-table">
+                                    <thead><tr><th>Tool</th><th>Link</th><th>Category</th><th style="text-align:right">Actions</th></tr></thead>
+                                    <tbody id="toolsTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MANAGE USERS -->
+                    <div id="sec-users" class="hidden">
+                        <div class="flex-between mb-4">
+                            <h2 class="section-title"><i class="fas fa-users"></i> Manage Users</h2>
+                            <input type="text" class="search-box" placeholder="Search users..." oninput="renderUsersTable()" id="userSearch">
+                        </div>
+                        <div class="card">
+                            <div style="overflow-x:auto">
+                                <table class="data-table">
+                                    <thead><tr><th>Username</th><th>Password</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead>
+                                    <tbody id="usersTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ADD TOOL -->
+                    <div id="sec-addTool" class="hidden">
+                        <h2 class="section-title"><i class="fas fa-plus-circle"></i> Add New Tool</h2>
+                        <div class="card" style="max-width:500px">
+                            <div class="card-body">
+                                <form onsubmit="return addTool(event)">
+                                    <div class="form-row"><label>Tool Name</label><input type="text" id="newToolName" required></div>
+                                    <div class="form-row"><label>Tool Link</label><input type="url" id="newToolLink" placeholder="https://example.com" required></div>
+                                    <div class="form-row"><label>Category</label>
+                                        <select id="newToolCat">
+                                            <option value="Video">Video</option><option value="Image">Image</option><option value="PDF">PDF</option>
+                                            <option value="Audio">Audio</option><option value="Developer">Developer</option><option value="Utility">Utility</option>
+                                            <option value="Security">Security</option><option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-row"><label>Description</label><textarea id="newToolDesc" required></textarea></div>
+                                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Add Tool</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <!-- ADD USER -->
+                    <div id="sec-addUser" class="hidden">
+                        <h2 class="section-title"><i class="fas fa-user-plus"></i> Add New User</h2>
+                        <div class="card" style="max-width:500px">
+                            <div class="card-body">
+                                <form onsubmit="return addUser(event)">
+                                    <div class="form-row"><label>Username</label><input type="text" id="newUsername" required></div>
+                                    <div class="form-row"><label>Password</label><input type="text" id="newPassword" required></div>
+                                    <button type="submit" class="btn btn-primary"><i class="fas fa-user-plus"></i> Add User</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Tool Modal -->
+    <div id="editToolModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 style="background:linear-gradient(90deg,#06b6d4,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent"><i class="fas fa-edit"></i> Edit Tool</h3>
+                <button class="modal-close" onclick="closeModal('editToolModal')">&times;</button>
+            </div>
+            <form onsubmit="return saveEditTool(event)">
+                <input type="hidden" id="editToolId">
+                <div class="form-row"><label>Tool Name</label><input type="text" id="editToolName" required></div>
+                <div class="form-row"><label>Tool Link</label><input type="url" id="editToolLink" required></div>
+                <div class="form-row"><label>Category</label>
+                    <select id="editToolCat">
+                        <option value="Video">Video</option><option value="Image">Image</option><option value="PDF">PDF</option>
+                        <option value="Audio">Audio</option><option value="Developer">Developer</option><option value="Utility">Utility</option>
+                        <option value="Security">Security</option><option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-row"><label>Description</label><textarea id="editToolDesc" required></textarea></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editToolModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteEditTool()"><i class="fas fa-trash"></i> Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 style="background:linear-gradient(90deg,#06b6d4,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent"><i class="fas fa-user-edit"></i> Edit User</h3>
+                <button class="modal-close" onclick="closeModal('editUserModal')">&times;</button>
+            </div>
+            <form onsubmit="return saveEditUser(event)">
+                <input type="hidden" id="editUserId">
+                <div class="form-row"><label>Username</label><input type="text" id="editUserName" required></div>
+                <div class="form-row"><label>Password</label><input type="text" id="editUserPass" required></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editUserModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteEditUser()"><i class="fas fa-trash"></i> Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastBox"></div>
+
+<script>
+// ============================================================
+// LOCALSTORAGE DATABASE (No Firebase!)
+// ============================================================
+const DB = {
+    TOOLS_KEY: 'tms_tools',
+    USERS_KEY: 'tms_users',
+    ADMIN_KEY: 'tms_admin_session',
+
+    getTools() {
+        let t = localStorage.getItem(this.TOOLS_KEY);
+        if (!t) {
+            const defaults = [
+                { id: crypto.randomUUID(), name: 'Video Converter', link: 'https://convertio.co/video-converter/', description: 'Convert videos between 300+ formats online with high quality output.', category: 'Video', createdAt: Date.now() },
+                { id: crypto.randomUUID(), name: 'PDF Compressor', link: 'https://smallpdf.com/compress-pdf', description: 'Compress PDF files without losing quality. Reduce file size up to 90%.', category: 'PDF', createdAt: Date.now() },
+                { id: crypto.randomUUID(), name: 'Image Editor Pro', link: 'https://pixlr.com/', description: 'Advanced online photo editor with AI-powered features and professional tools.', category: 'Image', createdAt: Date.now() },
+                { id: crypto.randomUUID(), name: 'Code Beautifier', link: 'https://codebeautify.org/', description: 'Format and beautify code in multiple languages with syntax highlighting.', category: 'Developer', createdAt: Date.now() },
+                { id: crypto.randomUUID(), name: 'Audio Converter', link: 'https://online-audio-converter.com/', description: 'Convert audio files to MP3, WAV, FLAC and more with lossless quality.', category: 'Audio', createdAt: Date.now() },
+                { id: crypto.randomUUID(), name: 'File Compressor', link: 'https://www.11zip.com/', description: 'Compress and decompress ZIP, RAR, 7Z files online without installing software.', category: 'Utility', createdAt: Date.now() },
+            ];
+            localStorage.setItem(this.TOOLS_KEY, JSON.stringify(defaults));
+            return defaults;
+        }
+        return JSON.parse(t);
+    },
+    saveTools(tools) { localStorage.setItem(this.TOOLS_KEY, JSON.stringify(tools)); },
+    getUsers() {
+        let u = localStorage.getItem(this.USERS_KEY);
+        if (!u) {
+            const defaults = [
+                { id: crypto.randomUUID(), username: 'demo', password: 'demo123', createdAt: Date.now() },
+                { id: crypto.randomUUID(), username: 'user1', password: 'user123', createdAt: Date.now() },
+            ];
+            localStorage.setItem(this.USERS_KEY, JSON.stringify(defaults));
+            return defaults;
+        }
+        return JSON.parse(u);
+    },
+    saveUsers(users) { localStorage.setItem(this.USERS_KEY, JSON.stringify(users)); },
+    isAdmin() { return !!localStorage.getItem(this.ADMIN_KEY); },
+    setAdmin() { localStorage.setItem(this.ADMIN_KEY, '1'); },
+    clearAdmin() { localStorage.removeItem(this.ADMIN_KEY); }
+};
+
+let currentSection = 'dashboard';
+let editingToolId = null;
+let editingUserId = null;
+
+// ============================================================
+// AUTH
+// ============================================================
+function doLogin(e) {
+    e.preventDefault();
+    const u = document.getElementById('adminUser').value;
+    const p = document.getElementById('adminPass').value;
+    if (u === 'admin' && p === 'admin123') {
+        DB.setAdmin();
+        showPanel();
+    } else {
+        toast('Invalid credentials!', 'error');
+    }
+    return false;
+}
+
+function showPanel() {
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('adminPanel').classList.remove('hidden');
+    loadDashboard();
+}
+
+function adminLogout() {
+    DB.clearAdmin();
+    window.location.href = 'index.html';
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showSection(sec) {
+    currentSection = sec;
+    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+    event.target.closest('.menu-item').classList.add('active');
+
+    ['dashboard','tools','users','addTool','addUser'].forEach(s => {
+        document.getElementById('sec-'+s).classList.add('hidden');
+    });
+    document.getElementById('sec-'+sec).classList.remove('hidden');
+
+    if (sec === 'dashboard') loadDashboard();
+    if (sec === 'tools') renderToolsTable();
+    if (sec === 'users') renderUsersTable();
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function loadDashboard() {
+    const tools = DB.getTools();
+    const users = DB.getUsers();
+    document.getElementById('statTools').textContent = tools.length;
+    document.getElementById('statUsers').textContent = users.length;
+    document.getElementById('statActive').textContent = users.length;
+
+    const recent = tools.slice(0, 5);
+    document.getElementById('recentTools').innerHTML = recent.length ? recent.map(t => `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;background:rgba(255,255,255,0.03);margin-bottom:6px">
+            <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,rgba(6,182,212,0.1),rgba(16,185,129,0.1));display:flex;align-items:center;justify-content:center;color:#06b6d4"><i class="fas fa-wrench"></i></div>
+            <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">${t.name}</div><div style="font-size:12px;color:#475569">${t.category}</div></div>
+            <span class="badge" style="background:${getCatColor(t.category)}10;color:${getCatColor(t.category)};border-color:${getCatColor(t.category)}30">${t.category}</span>
+        </div>
+    `).join('') : '<p style="color:#475569;text-align:center">No tools yet</p>';
+}
+
+function getCatColor(cat) {
+    const map = { Video:'#a855f7', Image:'#ec4899', PDF:'#ef4444', Audio:'#f59e0b', Developer:'#06b6d4', Utility:'#10b981' };
+    return map[cat] || '#64748b';
+}
+
+// ============================================================
+// TOOLS CRUD
+// ============================================================
+function renderToolsTable() {
+    const search = document.getElementById('toolSearch').value.toLowerCase();
+    let tools = DB.getTools();
+    if (search) tools = tools.filter(t => t.name.toLowerCase().includes(search) || t.description.toLowerCase().includes(search));
+
+    const tbody = document.getElementById('toolsTable');
+    tbody.innerHTML = tools.length ? tools.map(t => `
+        <tr>
+            <td><div style="font-weight:600">${t.name}</div><div style="font-size:12px;color:#475569">${t.description.substring(0,50)}...</div></td>
+            <td><a href="${t.link}" target="_blank" style="color:#06b6d4;font-size:13px"><i class="fas fa-external-link-alt"></i> ${t.link.substring(0,25)}...</a></td>
+            <td><span class="badge badge-green">${t.category}</span></td>
+            <td style="text-align:right">
+                <button class="btn btn-secondary btn-sm" onclick="openEditTool('${t.id}')"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-danger btn-sm" onclick="delTool('${t.id}')"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>
+    `).join('') : '<tr><td colspan="4" style="text-align:center;padding:40px;color:#475569"><i class="fas fa-tools" style="font-size:32px;display:block;margin-bottom:10px;opacity:.3"></i>No tools found</td></tr>';
+}
+
+function addTool(e) {
+    e.preventDefault();
+    const tools = DB.getTools();
+    tools.push({
+        id: crypto.randomUUID(),
+        name: document.getElementById('newToolName').value,
+        link: document.getElementById('newToolLink').value,
+        category: document.getElementById('newToolCat').value,
+        description: document.getElementById('newToolDesc').value,
+        createdAt: Date.now()
+    });
+    DB.saveTools(tools);
+    document.getElementById('newToolName').value = '';
+    document.getElementById('newToolLink').value = '';
+    document.getElementById('newToolDesc').value = '';
+    toast('Tool added successfully!', 'success');
+    showSection('tools');
+    return false;
+}
+
+function openEditTool(id) {
+    const tool = DB.getTools().find(t => t.id === id);
+    if (!tool) return;
+    editingToolId = id;
+    document.getElementById('editToolId').value = id;
+    document.getElementById('editToolName').value = tool.name;
+    document.getElementById('editToolLink').value = tool.link;
+    document.getElementById('editToolCat').value = tool.category;
+    document.getElementById('editToolDesc').value = tool.description;
+    document.getElementById('editToolModal').classList.add('show');
+}
+
+function saveEditTool(e) {
+    e.preventDefault();
+    const tools = DB.getTools();
+    const idx = tools.findIndex(t => t.id === editingToolId);
+    if (idx > -1) {
+        tools[idx] = { ...tools[idx],
+            name: document.getElementById('editToolName').value,
+            link: document.getElementById('editToolLink').value,
+            category: document.getElementById('editToolCat').value,
+            description: document.getElementById('editToolDesc').value,
+        };
+        DB.saveTools(tools);
+        toast('Tool updated!', 'success');
+    }
+    closeModal('editToolModal');
+    renderToolsTable();
+    return false;
+}
+
+function deleteEditTool() {
+    if (confirm('Delete this tool?')) {
+        const tools = DB.getTools().filter(t => t.id !== editingToolId);
+        DB.saveTools(tools);
+        toast('Tool deleted!', 'success');
+        closeModal('editToolModal');
+        renderToolsTable();
+    }
+}
+
+function delTool(id) {
+    if (confirm('Delete this tool?')) {
+        DB.saveTools(DB.getTools().filter(t => t.id !== id));
+        toast('Tool deleted!', 'success');
+        renderToolsTable();
+    }
+}
+
+// ============================================================
+// USERS CRUD
+// ============================================================
+function renderUsersTable() {
+    const search = document.getElementById('userSearch').value.toLowerCase();
+    let users = DB.getUsers();
+    if (search) users = users.filter(u => u.username.toLowerCase().includes(search));
+
+    const tbody = document.getElementById('usersTable');
+    tbody.innerHTML = users.length ? users.map(u => `
+        <tr>
+            <td style="color:#06b6d4;font-weight:600">${u.username}</td>
+            <td style="font-family:monospace;color:#475569">${u.password}</td>
+            <td><span class="badge badge-green"><i class="fas fa-circle" style="font-size:6px;vertical-align:middle;margin-right:4px"></i> Active</span></td>
+            <td style="text-align:right">
+                <button class="btn btn-secondary btn-sm" onclick="openEditUser('${u.id}')"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-danger btn-sm" onclick="delUser('${u.id}')"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>
+    `).join('') : '<tr><td colspan="4" style="text-align:center;padding:40px;color:#475569"><i class="fas fa-users" style="font-size:32px;display:block;margin-bottom:10px;opacity:.3"></i>No users found</td></tr>';
+}
+
+function addUser(e) {
+    e.preventDefault();
+    const username = document.getElementById('newUsername').value;
+    const users = DB.getUsers();
+    if (users.find(u => u.username === username)) {
+        toast('Username already exists!', 'error'); return false;
+    }
+    users.push({ id: crypto.randomUUID(), username, password: document.getElementById('newPassword').value, createdAt: Date.now() });
+    DB.saveUsers(users);
+    document.getElementById('newUsername').value = '';
+    document.getElementById('newPassword').value = '';
+    toast('User added successfully!', 'success');
+    showSection('users');
+    return false;
+}
+
+function openEditUser(id) {
+    const user = DB.getUsers().find(u => u.id === id);
+    if (!user) return;
+    editingUserId = id;
+    document.getElementById('editUserId').value = id;
+    document.getElementById('editUserName').value = user.username;
+    document.getElementById('editUserPass').value = user.password;
+    document.getElementById('editUserModal').classList.add('show');
+}
+
+function saveEditUser(e) {
+    e.preventDefault();
+    const users = DB.getUsers();
+    const idx = users.findIndex(u => u.id === editingUserId);
+    if (idx > -1) {
+        users[idx] = { ...users[idx],
+            username: document.getElementById('editUserName').value,
+            password: document.getElementById('editUserPass').value,
+        };
+        DB.saveUsers(users);
+        toast('User updated!', 'success');
+    }
+    closeModal('editUserModal');
+    renderUsersTable();
+    return false;
+}
+
+function deleteEditUser() {
+    if (confirm('Delete this user?')) {
+        DB.saveUsers(DB.getUsers().filter(u => u.id !== editingUserId));
+        toast('User deleted!', 'success');
+        closeModal('editUserModal');
+        renderUsersTable();
+    }
+}
+
+function delUser(id) {
+    if (confirm('Delete this user?')) {
+        DB.saveUsers(DB.getUsers().filter(u => u.id !== id));
+        toast('User deleted!', 'success');
+        renderUsersTable();
+    }
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function toast(msg, type='success') {
+    const box = document.getElementById('toastBox');
+    const t = document.createElement('div');
+    t.className = 'toast toast-' + type;
+    t.innerHTML = '<i class="fas fa-' + (type==='success'?'check-circle':'exclamation-circle') + '"></i> ' + msg;
+    box.appendChild(t);
+    setTimeout(() => { t.remove(); }, 3000);
+}
+
+// Auto login check
+document.addEventListener('DOMContentLoaded', () => {
+    if (DB.isAdmin()) showPanel();
+});
+</script>
+</body>
+</html>
